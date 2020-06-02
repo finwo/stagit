@@ -1,0 +1,31 @@
+#!/bin/sh
+
+REPO="${1}"
+
+# Ensure repo & cd into it
+cd ~/pub
+[ -d "${REPO}" ] || git init --bare "${REPO}"
+cd "${REPO}"
+
+# Ensure receiver
+rm -f hooks/*.sample
+rm -f hooks/post-receive
+sudo ln -s ~/receiver hooks/post-receive
+
+# Enable git daemon
+touch git-daemon-export-ok
+
+# Optional description
+[ "${2}" ] && {
+  echo "${2}" | sudo tee description >/dev/null
+}
+
+# Ensure URL
+echo "git://git.finwo.net/${REPO}" > url
+
+# Fill owner if empty
+[ -f "owner" ] || { echo "Robin Bron <finwo@pm.me>" > owner ; }
+
+# Fix permissions
+sudo chown -R git:git .
+sudo chmod -R g+w .
